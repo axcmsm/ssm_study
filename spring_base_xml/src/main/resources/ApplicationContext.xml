@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--开启一个新的命名空间 xmlns:context="http://www.springframework.org/schema/context"-->
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+
+       xsi:schemaLocation="
+       http://www.springframework.org/schema/beans
+       http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context
+       http://www.springframework.org/schema/context/spring-context.xsd
+"
+>
+
+    <!--    配置bean-->
+    <!--
+        bean标签配置bean
+        id属性给bean起名称
+        class属性表示给bean定义类型
+        name属性可以起多个别名,可以根据别名获取bean也可以根据id获取bean
+        scope:默认是 singleton 单例(为了对象的复用),prototype非单例
+              哪些bean适合单例?(反复使用)
+                表现层,业务层,数据层,工具对象
+
+              不适合(有状态的,只能用一次的): 封装实体的域对象
+        lazy-init="true" 延迟加载bean
+    -->
+    <bean id="axcmsmService" name="axcmsm service axcmsmEbi" scope="prototype"
+          class="com.axcmsm.service.Impl.AxcmsmServiceImpl">
+        <!--        配置server与dao的关系-->
+        <!--
+            property 标签是配置当前的bean的属性
+            name 属性表示配置哪一个具体的属性
+            ref 属性是表示参照哪一个bean  引用类型
+        -->
+        <property name="axcmsmDao" ref="axcmsmDao"></property>
+    </bean>
+
+    <!--方式一: 使用构造方法实例化bean-->
+    <!--
+        init-method 定义bean初始化调用的方法
+        destroy-method 定义bean销毁后调用的方法
+        autowire="byType" 自动装配按类型自动装配,需要bean有有该属性的类型，才能完成自动装配，而且类型只能唯一，他才能找到唯一的类型来进行装配
+        autowire="byName" 自动装配按类型自动装配,需要bean有有该属性的名称，才能完成自动装配，而且名称需要被找到。
+    -->
+    <bean id="axcmsmServiceAuto" class="com.axcmsm.service.Impl.AxcmsmServiceImpl" autowire="byType"/>
+    <bean id="axcmsmDao" class="com.axcmsm.dao.Impl.AxcmsmDaoImpl" init-method="init" destroy-method="destory">
+        <!--    value：简单类型，set注入-->
+        <property name="name" value="须贺"/>
+        <!--        构造器注入 name 名称，type根据类型 index参数的位置-->
+        <constructor-arg name="age" value="20"/>
+    </bean>
+
+    <!--    方式二：使用静态工厂实例化Bean 早期写法 （了解）-->
+    <!--    <bean id="axcmsmFactory" class="com.axcmsm.factory.AxcmsmServiceFactory" factory-method="getAxcmsmService"/>-->
+
+    <!--   方式三：使用实例工厂实例化bean （了解）-->
+    <!-- <bean id="axcmsmFactory" class="com.axcmsm.factory.AxcmsmServiceFactory"/>
+     <bean id="axcmsmServiceEbi" factory-method="getAxcmsm" factory-bean="axcmsmFactory"/>
+ -->
+
+    <!--    方式四：使用factoryBean 实例化bean-->
+    <bean id="axcmsmServiceEbi" class="com.axcmsm.factory.AxcmsmServiceFactoryBean" />
+
+    <!--    list 注入-->
+    <bean id="listDao" class="com.axcmsm.dao.Impl.ListDaoImpl">
+        <!--        arr类型-->
+        <property name="array">
+            <array>
+                <value>200</value>
+                <value>300</value>
+                <value>400</value>
+            </array>
+        </property>
+        <!--        list类型-->
+        <property name="list">
+            <list>
+                <value>张三</value>
+                <value>李四</value>
+                <value>王五</value>
+            </list>
+        </property>
+        <!--        set格式-->
+        <property name="set">
+            <set>
+                <value>张三</value>
+                <value>张三</value>
+                <value>张三</value>
+            </set>
+        </property>
+        <!--        map类型-->
+        <property name="map">
+            <map>
+                <entry key="name" value="张三"/>
+                <entry key="age" value="20"/>
+                <entry key="sex" value="男"/>
+            </map>
+        </property>
+        <property name="properties">
+            <props>
+                <prop key="name">张三</prop>
+                <prop key="age">20</prop>
+                <prop key="sex">男</prop>
+            </props>
+        </property>
+    </bean>
+
+
+    <!--    使用外部jdbcProperties 文件加载配置项-->
+    <!--
+        1. 开启context命名空间
+        2. context加载properties配置文件
+
+        system-properties-mode="NEVER" 不加载系统属性
+        classpath*:*.properties 可以从其他工程或jar包进行加载
+        classpath:*.properties 只能从当前工程进行加载
+
+        -->
+    <!--    <context:property-placeholder location="jdbc.properties" />-->
+    <!--    <context:property-placeholder location="*.properties" />-->
+    <!--    标准模式-->
+    <context:property-placeholder location="classpath*:jdbc.properties"/>
+    <!--    注入外部数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource">
+        <property name="driverClassName" value="${jdbc.driverClassName}"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.username}"/>
+        <property name="password" value="${jdbc.password}"/>
+    </bean>
+
+
+</beans>
